@@ -112,8 +112,7 @@ export async function getCurrentUser(): Promise<UserType | null> {
     const { payload } = await jwtVerify(token, getJwtSecretKey());
 
     if (!payload.userId || typeof payload.userId !== 'string') {
-      console.log('Invalid token payload, clearing cookie');
-      await clearAuthCookie();
+      console.log('Invalid token payload');
       return null;
     }
 
@@ -121,7 +120,6 @@ export async function getCurrentUser(): Promise<UserType | null> {
     const user = await User.findById(payload.userId).select('-password');
 
     if (!user || user.status !== 'active') {
-      await clearAuthCookie();
       return null;
     }
 
@@ -133,7 +131,6 @@ export async function getCurrentUser(): Promise<UserType | null> {
     };
   } catch (error) {
     console.error('Error verifying token:', error);
-    await clearAuthCookie();
     return null;
   }
 }
