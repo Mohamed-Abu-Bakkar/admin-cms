@@ -86,7 +86,7 @@ export default function UserListClient() {
         </div>
         <Button
           onClick={() => router.push("/users/add")}
-          className="bg-zinc-900 dark:bg-zinc-100 text-gray dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-300 rounded-lg gap-2"
+          className="dark:bg-zinc-100 text-gray dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-300 rounded-lg gap-2"
         >
           <Plus className="h-4 w-4" />
           Add User
@@ -152,11 +152,10 @@ export default function UserListClient() {
                       </TableCell>
                       <TableCell>
                         <span
-                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                            user.status === "active"
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${user.status === "active"
                               ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300"
                               : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                          }`}
+                            }`}
                         >
                           {user.status}
                         </span>
@@ -216,11 +215,10 @@ export default function UserListClient() {
                         </p>
                       </div>
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          user.status === "active"
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${user.status === "active"
                             ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300"
                             : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                        }`}
+                          }`}
                       >
                         {user.status}
                       </span>
