@@ -57,18 +57,20 @@ export default function ImageUpload({
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="product-image" className="block text-sm font-medium text-gray-700 mb-2">
           Product Image
         </label>
         <input
+          id="product-image"
           type="file"
           accept="image/*"
           onChange={handleFileChange}
           disabled={disabled || isUploading}
           className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 disabled:opacity-50"
+          aria-describedby={isUploading ? "uploading-status" : undefined}
         />
         {isUploading && (
-          <p className="mt-2 text-sm text-green-600">Uploading...</p>
+          <p id="uploading-status" className="mt-2 text-sm text-green-600">Uploading...</p>
         )}
       </div>
     </div>
