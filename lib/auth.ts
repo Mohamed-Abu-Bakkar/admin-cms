@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { connectDB } from './db';
 import User from '../models/User';
 import bcrypt from 'bcryptjs';
+import { SignJWT, jwtVerify } from 'jose';
 
 export interface UserType {
   id: string;
@@ -17,18 +18,26 @@ export interface AuthResponse {
   message?: string;
 }
 
+const getJwtSecretKey = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET is not set');
+  }
+  return new TextEncoder().encode(secret);
+};
+
 export async function verifyCredentials(
   email: string,
   password: string
 ): Promise<AuthResponse> {
   try {
     await connectDB();
-    
-    const user = await User.findOne({ 
-      email: email.toLowerCase(), 
-      status: 'active' 
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      status: 'active'
     });
-    
+
     if (!user) {
       return {
         success: false,
@@ -38,7 +47,7 @@ export async function verifyCredentials(
 
     // Compare password
     const isValidPassword = await bcrypt.compare(password, user.password);
-    
+
     if (!isValidPassword) {
       return {
         success: false,
@@ -47,10 +56,14 @@ export async function verifyCredentials(
     }
 
     // Generate token
-    const token = Buffer.from(JSON.stringify({ 
-      userId: user._id.toString(), 
-      email: user.email 
-    })).toString('base64');
+    const token = await new SignJWT({
+      userId: user._id.toString(),
+      email: user.email,
+      role: user.role
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setExpirationTime('7d')
+      .sign(getJwtSecretKey());
 
     return {
       success: true,
@@ -89,26 +102,24 @@ export async function getAuthToken(): Promise<string | undefined> {
 
 export async function getCurrentUser(): Promise<UserType | null> {
   const token = await getAuthToken();
-  
+
   if (!token) {
     return null;
   }
 
   try {
-    await connectDB();
-    
-    // Decode the token
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-    
-    // Validate that userId is a valid ObjectId
-    if (!decoded.userId || typeof decoded.userId !== 'string' || decoded.userId.length !== 24) {
-      console.log('Invalid token format, clearing cookie');
+    // Verify the token
+    const { payload } = await jwtVerify(token, getJwtSecretKey());
+
+    if (!payload.userId || typeof payload.userId !== 'string') {
+      console.log('Invalid token payload, clearing cookie');
       await clearAuthCookie();
       return null;
     }
-    
-    const user = await User.findById(decoded.userId).select('-password');
-    
+
+    await connectDB();
+    const user = await User.findById(payload.userId).select('-password');
+
     if (!user || user.status !== 'active') {
       await clearAuthCookie();
       return null;
@@ -121,7 +132,7 @@ export async function getCurrentUser(): Promise<UserType | null> {
       role: user.role,
     };
   } catch (error) {
-    console.error('Error getting current user:', error);
+    console.error('Error verifying token:', error);
     await clearAuthCookie();
     return null;
   }
